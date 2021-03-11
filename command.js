@@ -124,4 +124,8 @@ program // cli tmpp
         program.help(); // cli -h   오타를 냈을 시 설명서를 띄어주는것
     });
 
+program.action((cmd, args) => {  // cli 만 쳤을 때 실행되는 부분
+
+});
+
 program.parse(process.argv);
