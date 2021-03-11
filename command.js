@@ -112,7 +112,7 @@ program
     .alias('tmpl') // cli tmpl express-router       * tmpl = template의 별명
     .option('-f, -filename [filename', '파일명을 입력하세요', 'index')
     .option('-d, --directory [path]', '생성 경로를 입력하세요.', '.')
-    .action((type, option) => {
+    .action((type, options) => {
         console.log(type, options.filename, options.directory);
         makeTemplate(type, options.filename, options.directory);
     });
