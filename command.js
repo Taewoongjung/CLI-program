@@ -3,6 +3,7 @@ const { program } = require('commander');
 const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
+const inquirer = require('inquirer');
 const { version } = require('./package.json');
 
 const htmlTemplate = `
@@ -81,25 +82,25 @@ const mkdirp = (dir) => { // 경로 생성 함수
 const makeTemplate = (type, name, directory) => { // 템플릿 생성 함수
     mkdirp(directory);
     if (type === 'html') {
-      const pathToFile = path.join(directory, `${name}.html`);
-      if (exist(pathToFile)) {
-        console.error(chalk.bold.red('이미 해당 파일이 존재합니다'));
-      } else {
-        fs.writeFileSync(pathToFile, htmlTemplate);
-        console.log(chalk.green(pathToFile, '생성 완료'));
-      }
+        const pathToFile = path.join(directory, `${name}.html`);
+        if (exist(pathToFile)) {
+            console.error(chalk.bold.red('이미 해당 파일이 존재합니다'));
+        } else {
+            fs.writeFileSync(pathToFile, htmlTemplate);
+            console.log(chalk.green(pathToFile, '생성 완료'));
+        }
     } else if (type === 'express-router') {
-      const pathToFile = path.join(directory, `${name}.js`);
-      if (exist(pathToFile)) {
-        console.error(chalk.bold.red('이미 해당 파일이 존재합니다'));
-      } else {
-        fs.writeFileSync(pathToFile, routerTemplate);
-        console.log(chalk.green(pathToFile, '생성 완료'));
-      }
+        const pathToFile = path.join(directory, `${name}.js`);
+        if (exist(pathToFile)) {
+            console.error(chalk.bold.red('이미 해당 파일이 존재합니다'));
+        } else {
+            fs.writeFileSync(pathToFile, routerTemplate);
+            console.log(chalk.green(pathToFile, '생성 완료'));
+        }
     } else {
-      console.error('html 또는 express-router 둘 중 하나를 입력하세요.');
+        console.error('html 또는 express-router 둘 중 하나를 입력하세요.');
     }
-  };
+};
 
 program
     .version(version, '-v, --version') // version을 알려줘야 사람들이 깨지는지 아닌지 판단가능.   cli -v 버젼나옴
@@ -117,15 +118,38 @@ program
         makeTemplate(type, options.filename, options.directory);
     });
 
-program // cli tmpp
-    .command('*', { noHelp: true })
-    .action(() => {
-        console.log('해당 명령어를 찾을 수 없습니다.');
-        program.help(); // cli -h   오타를 냈을 시 설명서를 띄어주는것
-    });
-
-program.action((cmd, args) => {  // cli 만 쳤을 때 실행되는 부분
-
-});
-
-program.parse(process.argv);
+program
+    .action((cmd, args) => {  // cli 만 쳤을 때 실행되는 부분 또는 cli (틀린 명령어)
+        if (args) {
+            console.log(chalk.bold.red('해당 명령어를 찾을 수 없습니다.'));
+            program.help(); // cli -h   오타를 냈을 시 설명서를 띄어주는것
+        } else {
+            inquirer.prompt([{
+                type: 'list',
+                name: 'type',
+                message: '템플릿 종류를 선택하세요.',
+                choices: ['html', 'express-router'],
+            }, {
+                type: 'input',
+                name: 'name',
+                message: '파일의 이름을 입력하세요.',
+                default: 'index',
+            }, {
+                type: 'input',
+                name: 'directory',
+                message: '파일이 위치할 폴더의 경로를 입력하세요.',
+                default: '.',
+            }, {
+                type: 'confirm',
+                name: 'confirm',
+                message: '생성하시겠습니까?',
+            }])
+                .then((answers) => {
+                    if (answers.confirm) {
+                        makeTemplate(answers.type, answers.name, answers.directory);
+                        console.log(chalk.rgb(128, 128, 128)('터미널을 종료합니다.'));
+                    }
+                });
+        }
+    })
+    .parse(process.argv);
